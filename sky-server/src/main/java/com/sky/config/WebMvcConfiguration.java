@@ -41,20 +41,20 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
      * 通过knife4j生成接口文档
      * @return
      */
-    @Bean
+    @Bean//表示把这个方法返回的对象交给 Spring 管理。
     public Docket docket() {
         ApiInfo apiInfo = new ApiInfoBuilder()
-                .title("苍穹外卖项目接口文档")
-                .version("2.0")
-                .description("苍穹外卖项目接口文档")
-                .build();
+                .title("苍穹外卖项目接口文档")//文档标题
+                .version("2.0")//文档版本
+                .description("苍穹外卖项目接口文档")//文档描述
+                .build();//接口文档的基本介绍信息。
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))//去扫描 com.sky.controller 包下面的 Controller，然后根据这些 Controller 生成接口文档。
                 .paths(PathSelectors.any())
                 .build();
-        return docket;
+        return docket;//Spring 会管理这个：Docket 对象
     }
 
     /**
