@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -147,5 +148,31 @@ public class DishServiceImpl implements DishService {
             //向口味表插入n条数据
             dishFlavorMapper.insertBatch(flavors);
         }
+    }
+    /**
+     * 根据分类查菜品
+     *
+     */
+    @Override
+    public List<Dish> list(Long categoryId) {
+        //创建一个用于构建 Dish 对象的 Builder 对象;设置菜品所属的分类 ID;设置菜品状态
+        Dish dish = Dish.builder().categoryId(categoryId).build();//真正构建并返回一个 Dish 对象
+        return dishMapper.list(dish);
+    }
+
+    /**
+     * 菜品起售、停售
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+
+        dishMapper.update(dish);
     }
 }
