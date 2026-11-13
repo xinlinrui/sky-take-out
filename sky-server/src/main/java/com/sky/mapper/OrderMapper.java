@@ -4,6 +4,10 @@ import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
 @Mapper
 public interface OrderMapper {
     /**
@@ -18,10 +22,24 @@ public interface OrderMapper {
      */
     @Select("select * from orders where number = #{orderNumber} and user_id= #{userId}")
     Orders getByNumberAndUserId(String orderNumber, Long userId);
+    /**
+     * 历史订单分页查询
+     * @param orders 查询条件
+     * @return 订单列表
+     */
+    List<Orders> pageQuery(Orders orders);
 
     /**
      * 修改订单信息
      * @param orders
      */
     void update(Orders orders);
+    /**
+     * 根据订单ID和用户ID查询订单
+     */
+    @Select("select * from orders where id = #{id} and user_id = #{userId}")
+    Orders getByIdAndUserId(
+            @Param("id") Long id,
+            @Param("userId") Long userId
+    );
 }
