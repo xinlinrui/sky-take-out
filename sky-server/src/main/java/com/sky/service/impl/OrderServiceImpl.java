@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
@@ -14,6 +15,7 @@ import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -212,12 +216,25 @@ public class OrderServiceImpl implements OrderService {
 
         // 8. 更新数据库
         orderMapper.update(updateOrder);
+        // 模拟支付成功后，向管理端推送来单提醒
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", 1);
+        map.put("orderId", order.getId());
+        map.put("content", "订单号：" + order.getNumber());
+
+        String json = JSON.toJSONString(map);
+
+        log.info("准备向管理端推送来单提醒：{}", json);
+
+        webSocketServer.sendToAllClient(json);
 
         // 9. 返回支付结果
         return new OrderPaymentVO();
     }
 
 
+    @Autowired
+    private WebSocketServer webSocketServer;
     /**
      * 支付成功，修改订单状态
      *
@@ -239,6 +256,15 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+        //////////////////////////////////////////////
+        Map map = new HashMap();
+        map.put("type", 1);//消息类型，1表示来单提醒
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + outTradeNo);
+
+        //通过WebSocket实现来单提醒，向客户端浏览器推送消息
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+        ///////////////////////////////////////////////////
     }
     @Override
     public OrderVO details(Long id) {
@@ -296,7 +322,10 @@ public class OrderServiceImpl implements OrderService {
                 .cancelTime(LocalDateTime.now())
                 .build();
 
+        // 8. 更新数据库
         orderMapper.update(updateOrder);
+
+
     }
     @Override
     @Transactional(rollbackFor = Exception.class)
