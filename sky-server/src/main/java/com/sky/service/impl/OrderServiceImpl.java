@@ -367,19 +367,38 @@ public class OrderServiceImpl implements OrderService {
             shoppingCartMapper.insert(shoppingCart);
         }
     }
+    /**
+     * 用户催单
+     *
+     * @param id
+     */
     @Override
     public void reminder(Long id) {
 
         Long userId = BaseContext.getCurrentId();
 
+        // 1. 查询订单
         Orders order = orderMapper.getByIdAndUserId(id, userId);
 
         if (order == null) {
             throw new OrderBusinessException("订单不存在");
         }
 
-        // 暂时记录催单日志
-        log.info("用户催单成功，订单号：{}", order.getNumber());
+        // 2. 构造催单消息
+        Map<String, Object> map = new HashMap<>();
+
+        // type = 2 表示催单
+        map.put("type", 2);
+        map.put("orderId", order.getId());
+        map.put("content", "订单号：" + order.getNumber());
+
+        // 3. 转 JSON
+        String json = JSON.toJSONString(map);
+
+        log.info("准备向管理端推送催单提醒：{}", json);
+
+        // 4. WebSocket 推送给管理端
+        webSocketServer.sendToAllClient(json);
     }
 
 }
