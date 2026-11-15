@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
@@ -61,4 +63,24 @@ public interface OrderMapper {
      */
     @Select("select * from orders where id=#{id}")
     Orders getById(Long id);
+
+
+    /**
+     * 根据动态条件统计营业额
+     * @param map
+     */
+    Double sumByMap(Map map);
+    /**
+     * 根据动态条件统计订单数量
+     */
+    Integer countByMap(Map map);
+
+    /**
+     * 查询销量排名Top10
+     */
+    List<Map<String, Object>> getSalesTop10(
+            @Param("begin") LocalDateTime begin,
+            @Param("end") LocalDateTime end
+    );
+
 }
